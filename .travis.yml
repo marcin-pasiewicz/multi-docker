@@ -1,0 +1,20 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t zaa1/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true zaa1/react-test npm run test -- --watchAll=false
+
+after_success:
+  - docker build -t zaa1/multi-client ./client
+  - docker build -t zaa1/multi-nginx ./nginx
+  - docker build -t zaa1/multi-server ./server
+  - docker build -t zaa1/multi-worker ./worker
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push zaa1/multi-client
+  - docker push zaa1/multi-nginx
+  - docker push zaa1/multi-server
+  - docker push zaa1/multi-worker
